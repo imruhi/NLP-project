@@ -7,7 +7,7 @@ import os.path
 MODEL_CHECKPOINT = 'google/byt5-small'
 
 def load_data(file_path, load_from_local = True):
-    """ Load data from .csv or previously saved tokenized dataset 
+    """ Load data from .csv or previously saved hf dataset 
     :param file_path: str, absolute location of the path where data is located
     :param load_from_local: boolean, true if want to load saved dataset
     """
