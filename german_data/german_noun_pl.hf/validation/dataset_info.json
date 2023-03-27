@@ -1,0 +1,67 @@
+{
+  "builder_name": "csv",
+  "citation": "",
+  "config_name": "default",
+  "dataset_size": 67888,
+  "description": "",
+  "download_checksums": {
+    "C:\\Users\\jeroe\\Documents\\NLP-project-main\\german_data\\deu_600.tsv": {
+      "num_bytes": 18639,
+      "checksum": "3d44c397a07586451d17eba8260f096f9f0c8605e34ac8160f44878688b6d898"
+    },
+    "C:\\Users\\jeroe\\Documents\\NLP-project-main\\german_data\\deu_gold.tsv": {
+      "num_bytes": 18658,
+      "checksum": "5db3434f6107d37aa895872c8894f15574907948e23f12fc1019b6b3551e9abf"
+    },
+    "C:\\Users\\jeroe\\Documents\\NLP-project-main\\german_data\\deu_dev.tsv": {
+      "num_bytes": 15357,
+      "checksum": "3baddfd8926efd3cf2459fa6963f4ab3733ffe8fc3057eb6f4cd590ca91ec594"
+    }
+  },
+  "download_size": 52654,
+  "features": {
+    "inflection": {
+      "input": {
+        "dtype": "string",
+        "_type": "Value"
+      },
+      "output": {
+        "dtype": "string",
+        "_type": "Value"
+      },
+      "tag": {
+        "dtype": "string",
+        "_type": "Value"
+      }
+    }
+  },
+  "homepage": "",
+  "license": "",
+  "size_in_bytes": 120542,
+  "splits": {
+    "train": {
+      "name": "train",
+      "num_bytes": 24017,
+      "num_examples": 600,
+      "dataset_name": "csv"
+    },
+    "test": {
+      "name": "test",
+      "num_bytes": 24036,
+      "num_examples": 600,
+      "dataset_name": "csv"
+    },
+    "validation": {
+      "name": "validation",
+      "num_bytes": 19835,
+      "num_examples": 500,
+      "dataset_name": "csv"
+    }
+  },
+  "version": {
+    "version_str": "0.0.0",
+    "major": 0,
+    "minor": 0,
+    "patch": 0
+  }
+}

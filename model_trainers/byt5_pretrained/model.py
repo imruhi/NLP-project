@@ -1,0 +1,176 @@
+from transformers import Seq2SeqTrainer, Seq2SeqTrainingArguments, AutoTokenizer, AutoModelForSeq2SeqLM, DataCollatorForSeq2Seq
+import torch
+import evaluate
+import gc
+import numpy as np
+import os.path
+
+MODEL_CHECKPOINT = "google/byt5-base"
+
+def preprocess_function(examples):
+    """ To process the input before using it in model (tokenization)
+    """
+    tokenizer = AutoTokenizer.from_pretrained(MODEL_CHECKPOINT)
+    max_input_length = 128
+    max_target_length = 128
+
+    inputs = [ex["tag"] + ": " + ex["input"] for ex in examples["inflection"]]
+    targets = [ex["output"] for ex in examples["inflection"]]
+    model_inputs = tokenizer(inputs, max_length=max_input_length, truncation=True)
+
+    # Setup the tokenizer for targets
+    with tokenizer.as_target_tokenizer():
+        labels = tokenizer(targets, max_length=max_target_length, truncation=True)
+
+    model_inputs["labels"] = labels["input_ids"]
+    return model_inputs
+
+def train_transformer(dataset, model_name, model_dir, num_epochs = 3):
+    """ Finetune the byT5 transformer model and save it at model_dir
+    """
+    output_dir_model = os.path.join(model_dir, model_name, "checkpoints")
+    logging_dir_model = os.path.join(model_dir, model_name, "logging")
+    model_save_dir = os.path.join(model_dir, model_name)
+
+    # try out to remove cache
+    gc.collect()
+    torch.cuda.empty_cache() 
+    
+    # cuda works only if you have an nvidia gpu
+    device = torch.device("cuda") if torch.cuda.is_available() else torch.device("cpu")
+
+    print(f"#### training on {device} ####")
+    tokenizer = AutoTokenizer.from_pretrained(MODEL_CHECKPOINT)
+    print("#### Tokenizing dataset ####")
+    tokenized_datasets = dataset.map(preprocess_function, batched=True)
+    model = AutoModelForSeq2SeqLM.from_pretrained(MODEL_CHECKPOINT)
+    model.to(device)
+
+    n_beams = 3
+    max_gen_len = 36 # longest german noun has 36 letters
+    num_epochs = 3
+    train_batch_size = 2 # change it to something lower if you get memory error
+    eval_batch_size = 2 
+    
+    args = Seq2SeqTrainingArguments(
+        output_dir=output_dir_model,
+        evaluation_strategy="epoch",
+        learning_rate=5e-5,
+        per_device_train_batch_size=train_batch_size,
+        per_device_eval_batch_size=eval_batch_size,
+        weight_decay=0.01,
+        save_total_limit = 3,
+        num_train_epochs=num_epochs,
+        predict_with_generate=True,
+        metric_for_best_model="cer", # metric to reduce (Character Error Rate)
+        generation_max_length=max_gen_len,
+        optim="adafactor",
+        generation_num_beams=n_beams, # for beam search in decoder
+        logging_strategy="epoch",
+        logging_dir=logging_dir_model
+    )
+
+    data_collator = DataCollatorForSeq2Seq(tokenizer, model=model)
+    metric = evaluate.load("cer") # metric used by byt5 (character error rate)
+
+    ########
+
+    def postprocess_text(preds, labels):
+        """ Format the output so that metrics can be computed
+        """
+        preds = [pred.strip() for pred in preds]
+        labels = [label.strip() for label in labels]
+
+        return preds, labels
+
+    def compute_metrics(eval_preds):
+        """ Compute metrics based on CER
+        """
+        preds, labels = eval_preds
+        
+        if isinstance(preds, tuple):
+            preds = preds[0]
+        decoded_preds = tokenizer.batch_decode(preds, skip_special_tokens=True)
+
+        # Replace -100 in the labels as we can't decode them.
+        labels = np.where(labels != -100, labels, tokenizer.pad_token_id)
+        decoded_labels = tokenizer.batch_decode(labels, skip_special_tokens=True)
+
+        # Some simple post-processing
+        decoded_preds, decoded_labels = postprocess_text(decoded_preds, decoded_labels)
+        print(decoded_preds, decoded_labels)
+
+        result = metric.compute(predictions=decoded_preds, references=decoded_labels)
+        result = {"cer": result}
+
+        prediction_lens = [np.count_nonzero(pred != tokenizer.pad_token_id) for pred in preds]
+        result["gen_len"] = np.mean(prediction_lens)
+        result = {k: round(v, 4) for k, v in result.items()}
+        return result
+
+    ########
+
+    trainer = Seq2SeqTrainer(
+                                model,
+                                args,
+                                train_dataset=tokenized_datasets["train"],
+                                eval_dataset=tokenized_datasets["validation"],
+                                data_collator=data_collator,
+                                tokenizer=tokenizer,
+                                compute_metrics=compute_metrics
+                            )
+
+    print("#### Training model ####")
+    train_result = trainer.train()
+
+    trainer.save_model(output_dir=model_save_dir)
+
+    # try out to remove cache
+    gc.collect()
+    torch.cuda.empty_cache() 
+
+
+def eval_transformer(dataset, file_path, model_name):
+    """ TODO: can go further with CER: find CER for the number of characters in input
+    probably its the case that as the no. of charecters increases, the CER increases 
+    """
+    model_dir = os.path.join(file_path, model_name)
+
+    model = AutoModelForSeq2SeqLM.from_pretrained(model_dir)
+
+    tokenizer = AutoTokenizer.from_pretrained(MODEL_CHECKPOINT)
+    print("#### Tokenizing dataset ####")
+    dataset = dataset["test"]["inflection"]
+    input_model = []
+    labels = []
+
+    for i in range(len(dataset)):
+        input_model.append(dataset[i]["tag"] + ": " + dataset[i]["input"])
+        labels.append(dataset[i]["output"])
+
+    model_inputs = tokenizer(input_model, padding="max_length", max_length=36, return_tensors="pt")
+    input_ids = model_inputs.input_ids
+    attention_mask = model_inputs.attention_mask
+    print("#### Generating outputs ####")
+    outputs = model.generate(input_ids=input_ids, attention_mask=attention_mask, max_length=36)
+
+    decoded_outputs = tokenizer.batch_decode(outputs.tolist(), skip_special_tokens=True)
+    print("#### Calculating accuracy and cer score ####")
+
+    print(labels)
+    print("----------------------------------------------------------------------------")
+    print(decoded_outputs)
+
+    # first get accuracy
+    direct_acc = 0
+    for i in range(len(decoded_outputs)):
+        if decoded_outputs[i] == labels[i]: # not lower cause german nouns are always capital
+            direct_acc += 1
+    print("Direct accuracy (%) on test set: ", ((direct_acc/len(decoded_outputs)) * 100))
+    # direct accuracy is 78.5% when training on base byt5 and german data 
+
+    # then get CER
+    metric = evaluate.load("cer")
+    cer_score = metric.compute(predictions=decoded_outputs, references=labels)    
+    print("CER on test set: ", cer_score) # lower is better
+    # CER on test set:  0.033 when training on base byt5 and german data
