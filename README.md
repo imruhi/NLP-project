@@ -35,11 +35,13 @@ The available actions are:
 - `eval_transformer`: Evaluate an existing Byt5 model
 - `do_analysis`: Compute attribution scores (using Inseq) for specific input
 - `do_contrast_analysis`: Compute contrastive attribution scores (using Inseq) for specific input, original target and contrastive target 
+- `get_average_score`: Extract statistics over the attributions of your entire test set
 
 Additionally, the following options can be specified to further configure the program:
 
 |Option|Description|Default Value|
 |------|-----------|-------------|
 |`local_load`|Load from local dataset or create a new one from source data|yes|
-|`epochs`|The number of epochs to finetune the model for|5|
+|`epochs`|The number of epochs to finetune the model for|3|
 |`name`|The name used for the finetuned model|"byt5finetune_ruhi"|
+|`correct_preds`|Choose the correct preds while calculating average attribution scores or not|yes|
