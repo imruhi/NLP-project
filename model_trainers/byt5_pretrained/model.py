@@ -118,7 +118,7 @@ def train_transformer(dataset, model_name, model_dir, num_epochs = 3):
                                     model,
                                     args,
                                     train_dataset=tokenized_datasets["train"][0:idx_end],
-                                    eval_dataset=tokenized_datasets["validation"][0:idx_end],
+                                    eval_dataset=tokenized_datasets["validation"],
                                     data_collator=data_collator,
                                     tokenizer=tokenizer,
                                     compute_metrics=compute_metrics
