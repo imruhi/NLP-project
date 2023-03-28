@@ -41,7 +41,7 @@ def do_analysis(model_filepath, input_text):
 
     out.show()
 
-def get_average_score(preds_f, labels_f, test_f, bCorrect = True):
+def get_average_score(model_f, preds_f, labels_f, test_f, bCorrect = True):
     """ TODO: challenge part, get the average attribution scores given a prediction list of
     plural nouns 
     :param bCorrect: if True get scores for correct predictions else get scores for incorrect predictions 
@@ -66,6 +66,8 @@ def get_average_score(preds_f, labels_f, test_f, bCorrect = True):
         inputs.append(tags[i] + ": " + lemma[i])
 
     # TODO: challange part
+    model = inseq.load_model(model_f, "input_x_gradient")
+
     print("#### Attributing ####")
     out = model.attribute(
         inputs,
