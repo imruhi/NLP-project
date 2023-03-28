@@ -77,6 +77,6 @@ if __name__ == "__main__":
         preds_f = os.path.join(dataset_filepath, "outputs_test.txt")
         labels_f = os.path.join(dataset_filepath, "labels_test.txt")
         test_f = os.path.join(dataset_filepath, "deu_gold.csv")
-        get_average_score(preds_f, labels_f, test_f, bCorrect = options.correct_preds)
+        get_average_score(model_f, preds_f, labels_f, test_f, bCorrect = options.correct_preds)
     else:
         print("no valid action selected!")
