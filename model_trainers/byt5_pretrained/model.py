@@ -110,7 +110,7 @@ def train_transformer(dataset, model_name, model_dir, num_epochs = 3):
     idx_end = 100
 
     while idx_end != 700:
-        model_save_dir = os.path.join(model_dir, model_name + idx_end)
+        model_save_dir = os.path.join(model_dir, model_name + str(idx_end))
         trainer = Seq2SeqTrainer(
                                     model,
                                     args,
