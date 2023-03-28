@@ -114,7 +114,7 @@ def train_transformer(dataset, model_name, model_dir, num_epochs = 3):
         trainer = Seq2SeqTrainer(
                                     model,
                                     args,
-                                    train_dataset=tokenized_datasets["train"][0:idx_end],
+                                    train_dataset=tokenized_datasets["train"].select(range(0,idx_end)),
                                     eval_dataset=tokenized_datasets["validation"],
                                     data_collator=data_collator,
                                     tokenizer=tokenizer,
