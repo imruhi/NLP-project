@@ -49,15 +49,15 @@ def get_average_score(preds_f, labels_f, test_f, bCorrect = True):
 
     # get all data needed
     print("#### Getting data ####")
-    my_file = open(file_path_labels, "r")
+    my_file = open(labels_f, "r")
     labels = my_file.read().split(',')
     my_file.close()
 
-    my_file = open(file_path_outputs, "r")
+    my_file = open(preds_f, "r")
     outputs = my_file.read().split(',')
     my_file.close()
 
-    df = pd.read_csv(file_path_testset, usecols = ['tag','lemma'], low_memory = True)
+    df = pd.read_csv(test_f, usecols = ['tag','lemma'], low_memory = True)
     tags = df['tag'].values.tolist()
     lemma = df['lemma'].values.tolist()
 
