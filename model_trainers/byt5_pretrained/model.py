@@ -163,10 +163,10 @@ def eval_transformer(dataset, file_path, model_name):
         if decoded_outputs[i] == labels[i]: # not lower cause german nouns are always capital
             direct_acc += 1
     print("Direct accuracy (%) on test set: ", ((direct_acc/len(decoded_outputs)) * 100))
-    # direct accuracy is 78.5% when training on base byt5 and german data 
+    # direct accuracy is 83.5% when training on base byt5 and german data 
 
     # then get CER
     metric = evaluate.load("cer")
     cer_score = metric.compute(predictions=decoded_outputs, references=labels)    
     print("CER on test set: ", cer_score) # lower is better
-    # CER on test set:  0.033 when training on base byt5 and german data
+    # CER on test set:  0.027 when training on base byt5 and german data
