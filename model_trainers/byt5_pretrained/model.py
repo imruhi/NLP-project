@@ -48,26 +48,22 @@ def train_transformer(dataset, model_name, model_dir, num_epochs = 3):
 
     n_beams = 3
     max_gen_len = 36 # longest german noun has 36 letters
-    num_epochs = 3
     train_batch_size = 2 # change it to something lower if you get memory error
     eval_batch_size = 2 
     
     args = Seq2SeqTrainingArguments(
-        output_dir=output_dir_model,
-        evaluation_strategy="epoch",
-        learning_rate=5e-5,
+        output_dir=model_dir + "\\" + model_name + "\\checkpoints",
+        evaluation_strategy = "epoch",
+        learning_rate=1e-4,
         per_device_train_batch_size=train_batch_size,
         per_device_eval_batch_size=eval_batch_size,
         weight_decay=0.01,
-        save_total_limit = 3,
         num_train_epochs=num_epochs,
         predict_with_generate=True,
         metric_for_best_model="cer", # metric to reduce (Character Error Rate)
         generation_max_length=max_gen_len,
         optim="adafactor",
-        generation_num_beams=n_beams, # for beam search in decoder
-        logging_strategy="epoch",
-        logging_dir=logging_dir_model
+        generation_num_beams=n_beams # for beam search in decoder
     )
 
     data_collator = DataCollatorForSeq2Seq(tokenizer, model=model)
@@ -121,7 +117,7 @@ def train_transformer(dataset, model_name, model_dir, num_epochs = 3):
                             )
 
     print("#### Training model ####")
-    train_result = trainer.train()
+    trainer.train()
 
     trainer.save_model(output_dir=model_save_dir)
 
