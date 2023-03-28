@@ -39,13 +39,14 @@ if __name__ == "__main__":
     model_filepath = os.path.join(cwd, "models")
 
     # load dataset
-    ds = None
-    if options.local_load.lower() == "yes":
-        ds = loader.load_data(dataset_filepath, True)
-    else:
-        ds = loader.load_data(dataset_filepath, False)
-    if ds == None:
-        print("#### No dataset found ####")
+    if options.action == "train_transformer" or options.action == "eval_transformer":        
+        ds = None
+        if options.local_load.lower() == "yes":
+            ds = loader.load_data(dataset_filepath, True)
+        else:
+            ds = loader.load_data(dataset_filepath, False)
+        if ds == None:
+            print("#### No dataset found ####")
 
     # run specific modules
     if options.action == "train_transformer":
@@ -56,14 +57,14 @@ if __name__ == "__main__":
 
     elif options.action == "do_analysis":
         model_f = os.path.join(model_filepath, options.name)
-        input_text = input("Enter your input text in format morphosyntactic tags: noun")
+        input_text = input("> Enter your input text in format morphosyntactic tags: noun\n")
         do_analysis(model_f, input_text)
 
     elif options.action == "do_contrast_analysis":
         model_f = os.path.join(model_filepath, options.name)
-        input_text = input("Enter your input text in format morphosyntactic tags: noun")
-        truth = input("Enter the original target")
-        contrast = input("Enter contrast target")
+        input_text = input("> Enter your input text in format morphosyntactic tags: noun\n")
+        truth = input("> Enter the original target")
+        contrast = input("> Enter contrast target")
         do_contrast_analysis(model_f, input_text, contrast, truth)
     # TODO: challenge part
     else:
