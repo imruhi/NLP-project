@@ -163,10 +163,10 @@ def eval_transformer(dataset, file_path, model_name):
 
     # saving for later analysis
     with open(outputs_filepath, "w") as output:
-        output.write(decoded_outputs)
+        output.write(str(decoded_outputs))
 
     with open(labels_filepath, "w") as output:
-        output.write(labels)
+        output.write(str(labels))
 
     # first get accuracy
     direct_acc = 0
