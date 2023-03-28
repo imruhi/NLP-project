@@ -29,8 +29,6 @@ def do_contrast_analysis(model_filepath, input_text, contrast_text, truth_text):
     out.weight_attributions("contrast_prob_diff")
     out.show()
 
-    # TODO challenge part
-
 def do_analysis(model_filepath, input_text):
     """ Do analysis of the prediction (unconstrained) as in W5E notebook
     """
@@ -50,6 +48,7 @@ def get_average_score(preds_f, labels_f, test_f, bCorrect = True):
     """  
 
     # get all data needed
+    print("#### Getting data ####")
     my_file = open(file_path_labels, "r")
     labels = my_file.read().split(',')
     my_file.close()
@@ -67,6 +66,7 @@ def get_average_score(preds_f, labels_f, test_f, bCorrect = True):
         inputs.append(tags[i] + ": " + lemma[i])
 
     # TODO: challange part
+    print("#### Attributing ####")
     out = model.attribute(
         inputs,
         attribute_target=True,
