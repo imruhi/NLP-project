@@ -29,6 +29,7 @@ def train_transformer(dataset, model_name, model_dir, num_epochs = 3):
     """ Finetune the byT5 transformer model and save it at model_dir
     """
     output_dir_model = os.path.join(model_dir, model_name, "checkpoints")
+    logging_dir_model = os.path.join(model_dir, model_name, "logging")
     model_save_dir = os.path.join(model_dir, model_name)
 
     # try out to remove cache
@@ -47,22 +48,26 @@ def train_transformer(dataset, model_name, model_dir, num_epochs = 3):
 
     n_beams = 3
     max_gen_len = 36 # longest german noun has 36 letters
+    num_epochs = 3
     train_batch_size = 2 # change it to something lower if you get memory error
     eval_batch_size = 2 
     
     args = Seq2SeqTrainingArguments(
         output_dir=output_dir_model,
-        evaluation_strategy = "epoch",
-        learning_rate=1e-4,
+        evaluation_strategy="epoch",
+        learning_rate=5e-5,
         per_device_train_batch_size=train_batch_size,
         per_device_eval_batch_size=eval_batch_size,
         weight_decay=0.01,
+        save_total_limit = 3,
         num_train_epochs=num_epochs,
         predict_with_generate=True,
         metric_for_best_model="cer", # metric to reduce (Character Error Rate)
         generation_max_length=max_gen_len,
         optim="adafactor",
-        generation_num_beams=n_beams # for beam search in decoder
+        generation_num_beams=n_beams, # for beam search in decoder
+        logging_strategy="epoch",
+        logging_dir=logging_dir_model
     )
 
     data_collator = DataCollatorForSeq2Seq(tokenizer, model=model)
@@ -116,7 +121,7 @@ def train_transformer(dataset, model_name, model_dir, num_epochs = 3):
                             )
 
     print("#### Training model ####")
-    trainer.train()
+    train_result = trainer.train()
 
     trainer.save_model(output_dir=model_save_dir)
 
@@ -152,9 +157,16 @@ def eval_transformer(dataset, file_path, model_name):
     decoded_outputs = tokenizer.batch_decode(outputs.tolist(), skip_special_tokens=True)
     print("#### Calculating accuracy and cer score ####")
 
-    print(labels)
-    print("----------------------------------------------------------------------------")
-    print(decoded_outputs)
+    file_path = os.path.dirname(os.path.dirname(cwd))
+    labels_filepath = os.path.join(file_path, "german_data", "labels_test.txt")
+    outputs_filepath = os.path.join(file_path, "german_data", "outputs_test.txt")
+
+    # saving for later analysis
+    with open(outputs_filepath, "w") as output:
+        output.write(decoded_outputs)
+
+    with open(labels_filepath, "w") as output:
+        output.write(labels)
 
     # first get accuracy
     direct_acc = 0
@@ -162,10 +174,71 @@ def eval_transformer(dataset, file_path, model_name):
         if decoded_outputs[i] == labels[i]: # not lower cause german nouns are always capital
             direct_acc += 1
     print("Direct accuracy (%) on test set: ", ((direct_acc/len(decoded_outputs)) * 100))
-    # direct accuracy is 83.5% when training on base byt5 and german data 
+    # direct accuracy is 78.5% when training on base byt5 and german data 
 
     # then get CER
     metric = evaluate.load("cer")
     cer_score = metric.compute(predictions=decoded_outputs, references=labels)    
     print("CER on test set: ", cer_score) # lower is better
-    # CER on test set:  0.027 when training on base byt5 and german data
+    # CER on test set:  0.033 when training on base byt5 and german data
+
+def get_gender_accuracy(file_path_labels, file_path_outputs, file_path_testset):
+    my_file = open(file_path_labels, "r")
+    labels = my_file.read().split(',')
+    my_file.close()
+
+    my_file = open(file_path_outputs, "r")
+    outputs = my_file.read().split(',')
+    my_file.close()
+
+    tags = pd.read_csv(file_path_testset, usecols = ['tag'], low_memory = True)
+    tags = tags['tag'].values.tolist()
+
+    fem_labels = []
+    masc_labels = []
+    neut_labels = []
+
+    fem_outputs = []
+    masc_outputs = []
+    neut_outputs = []
+
+    for i in range(len(tags)):
+        if "FEM" in tags[i]:
+            fem_labels.append(labels[i])
+            fem_outputs.append(outputs[i])
+        elif "MASC" in tags[i]:
+            masc_labels.append(labels[i])
+            masc_outputs.append(outputs[i])
+        else:
+            neut_labels.append(labels[i])
+            neut_outputs.append(outputs[i])
+
+    fem_acc = 0
+    masc_acc = 0
+    neut_acc = 0
+
+    for i in range(len(fem_outputs)):
+        if fem_outputs[i] == fem_labels[i]:
+            fem_acc += 1
+
+    for i in range(len(masc_outputs)):
+        if masc_outputs[i] == masc_labels[i]:
+            masc_acc += 1
+
+    for i in range(len(neut_outputs)):
+        if neut_outputs[i] == neut_labels[i]:
+            neut_acc += 1
+
+    print(f"Accuracy on FEM nouns: {((fem_acc/len(fem_outputs)) * 100)}")
+    print(f"Accuracy on MASC nouns: {((masc_acc/len(masc_outputs)) * 100)}")
+    print(f"Accuracy on NEUT nouns: {((neut_acc/len(neut_outputs)) * 100)}")
+
+if __name__ == "__main__":
+    import pandas as pd
+    # test purpose
+    cwd = os.getcwd()
+    file_path = os.path.dirname(os.path.dirname(cwd))
+    labels = os.path.join(file_path, "german_data", "labels_test.txt")
+    outputs = os.path.join(file_path, "german_data", "outputs_test.txt")
+    testset = os.path.join(file_path, "german_data", "deu_gold.csv")
+    get_gender_accuracy(labels, outputs, testset)
