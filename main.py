@@ -23,7 +23,7 @@ parser.add_argument("--action", type=str,
 parser.add_argument("--local_load", type=str, default="yes",
                     help="Redownload source data or load from local dataset")
 
-parser.add_argument("--epochs", type=int, default=3,
+parser.add_argument("--epochs", type=int, default=5,
                     help="The number of epochs the model will be trained")
 
 parser.add_argument("--name", type=str, default="byt5finetune_ruhi",
