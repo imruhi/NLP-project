@@ -66,7 +66,7 @@ def train_transformer(dataset, model_name, model_dir, num_epochs = 3):
         metric_for_best_model="cer", # metric to reduce (Character Error Rate)
         generation_max_length=max_gen_len,
         optim="adafactor",
-        generation_num_beams=n_beams, # for beam search in decoder
+        generation_num_beams=n_beams # for beam search in decoder
     )
 
     data_collator = DataCollatorForSeq2Seq(tokenizer, model=model)
