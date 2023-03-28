@@ -49,7 +49,6 @@ def train_transformer(dataset, model_name, model_dir, num_epochs = 3):
 
     n_beams = 3
     max_gen_len = 36 # longest german noun has 36 letters
-    num_epochs = 3
     train_batch_size = 2 # change it to something lower if you get memory error
     eval_batch_size = 2 
     
