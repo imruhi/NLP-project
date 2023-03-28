@@ -110,31 +110,34 @@ def train_transformer(dataset, model_name, model_dir, num_epochs = 3):
         return result
 
     ########
+    idx_end = 100
 
-    trainer = Seq2SeqTrainer(
-                                model,
-                                args,
-                                train_dataset=tokenized_datasets["train"],
-                                eval_dataset=tokenized_datasets["validation"],
-                                data_collator=data_collator,
-                                tokenizer=tokenizer,
-                                compute_metrics=compute_metrics
-                            )
+    while idx_end != 700:
+        model_save_dir = os.path.join(model_dir, model_name + idx_end)
+        trainer = Seq2SeqTrainer(
+                                    model,
+                                    args,
+                                    train_dataset=tokenized_datasets["train"][0:idx_end],
+                                    eval_dataset=tokenized_datasets["validation"][0:idx_end],
+                                    data_collator=data_collator,
+                                    tokenizer=tokenizer,
+                                    compute_metrics=compute_metrics
+                                )
 
-    print("#### Training model ####")
-    train_result = trainer.train()
+        print("#### Training model ####")
+        train_result = trainer.train()
 
-    trainer.save_model(output_dir=model_save_dir)
+        trainer.save_model(output_dir=model_save_dir)
 
-    # try out to remove cache
-    gc.collect()
-    torch.cuda.empty_cache() 
+        # try out to remove cache
+        gc.collect()
+        torch.cuda.empty_cache() 
 
 
-def eval_transformer(dataset, file_path, model_name):
+def eval_transformer(dataset, model_f, data_f, model_name):
     """ Get direct accuracy and CER on test set
     """
-    model_dir = os.path.join(file_path, model_name)
+    model_dir = os.path.join(model_f, model_name)
 
     model = AutoModelForSeq2SeqLM.from_pretrained(model_dir)
 
@@ -155,11 +158,11 @@ def eval_transformer(dataset, file_path, model_name):
     outputs = model.generate(input_ids=input_ids, attention_mask=attention_mask, max_length=36)
 
     decoded_outputs = tokenizer.batch_decode(outputs.tolist(), skip_special_tokens=True)
+    
     print("#### Calculating accuracy and cer score ####")
 
-    file_path = os.path.dirname(os.path.dirname(cwd))
-    labels_filepath = os.path.join(file_path, "german_data", "labels_test.txt")
-    outputs_filepath = os.path.join(file_path, "german_data", "outputs_test.txt")
+    labels_filepath = os.path.join(data_f, "labels_test_" + model_name + ".txt")
+    outputs_filepath = os.path.join(data_f, "outputs_test_" + model_name + ".txt")
 
     # saving for later analysis
     with open(outputs_filepath, "w") as output:
@@ -168,22 +171,33 @@ def eval_transformer(dataset, file_path, model_name):
     with open(labels_filepath, "w") as output:
         output.write(str(labels))
 
-    # first get accuracy
-    direct_acc = 0
-    for i in range(len(decoded_outputs)):
-        if decoded_outputs[i] == labels[i]: # not lower cause german nouns are always capital
-            direct_acc += 1
-    print("Direct accuracy (%) on test set: ", ((direct_acc/len(decoded_outputs)) * 100))
-    # direct accuracy is 78.5% when training on base byt5 and german data 
+    # my_file = open(labels_filepath, "r")
+    # labels = my_file.read().split(',')
+    # my_file.close()
 
-    # then get CER
-    metric = evaluate.load("cer")
-    cer_score = metric.compute(predictions=decoded_outputs, references=labels)    
-    print("CER on test set: ", cer_score) # lower is better
-    # CER on test set:  0.033 when training on base byt5 and german data
+    # my_file = open(outputs_filepath, "r")
+    # decoded_outputs = my_file.read().split(',')
+    # my_file.close()
+
+    idx_end = 100
+
+    while idx_end != 700:
+        # first get accuracy
+        direct_acc = 0
+        for i in range(idx_end):
+            if decoded_outputs[i] == labels[i]: # not lower cause german nouns are always capital
+                direct_acc += 1
+        print(f"Direct accuracy (%) on test set of size {idx_end}: {((direct_acc/idx_end) * 100)}")
+
+        # then get CER
+        metric = evaluate.load("cer")
+        cer_score = metric.compute(predictions=decoded_outputs[0:idx_end], references=labels[0:idx_end])    
+        print(f"CER on test set of size {idx_end}: {cer_score}") # lower is better
+        print()
+        idx_end += 100
 
 def get_gender_accuracy(file_path_labels, file_path_outputs, file_path_testset):
-    """ Get accuracy based on gender specifics
+    """ Get accuracy based on gender specifics (for whole test set)
     """
     my_file = open(file_path_labels, "r")
     labels = my_file.read().split(',')
