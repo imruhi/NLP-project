@@ -56,7 +56,7 @@ def train_transformer(dataset, model_name, model_dir, num_epochs = 3):
     args = Seq2SeqTrainingArguments(
         output_dir=output_dir_model,
         evaluation_strategy="epoch",
-        learning_rate=5e-5,
+        learning_rate=1e-4,
         per_device_train_batch_size=train_batch_size,
         per_device_eval_batch_size=eval_batch_size,
         weight_decay=0.01,
@@ -67,8 +67,6 @@ def train_transformer(dataset, model_name, model_dir, num_epochs = 3):
         generation_max_length=max_gen_len,
         optim="adafactor",
         generation_num_beams=n_beams, # for beam search in decoder
-        logging_strategy="epoch",
-        logging_dir=logging_dir_model
     )
 
     data_collator = DataCollatorForSeq2Seq(tokenizer, model=model)
