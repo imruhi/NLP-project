@@ -29,7 +29,6 @@ def train_transformer(dataset, model_name, model_dir, num_epochs = 3):
     """ Finetune the byT5 transformer model and save it at model_dir
     """
     output_dir_model = os.path.join(model_dir, model_name, "checkpoints")
-    logging_dir_model = os.path.join(model_dir, model_name, "logging")
     model_save_dir = os.path.join(model_dir, model_name)
 
     # try out to remove cache
@@ -52,7 +51,7 @@ def train_transformer(dataset, model_name, model_dir, num_epochs = 3):
     eval_batch_size = 2 
     
     args = Seq2SeqTrainingArguments(
-        output_dir=model_dir + "\\" + model_name + "\\checkpoints",
+        output_dir=output_dir_model,
         evaluation_strategy = "epoch",
         learning_rate=1e-4,
         per_device_train_batch_size=train_batch_size,
