@@ -132,6 +132,7 @@ def train_transformer(dataset, model_name, model_dir, num_epochs = 3):
         # try out to remove cache
         gc.collect()
         torch.cuda.empty_cache() 
+        idx_end += 100
 
 
 def eval_transformer(dataset, model_f, data_f, model_name):
