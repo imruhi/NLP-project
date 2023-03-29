@@ -136,63 +136,68 @@ def eval_transformer(dataset, model_f, data_f, model_name):
     """ Get direct accuracy and CER on test set
     """
     model_dir = os.path.join(model_f, model_name)
-
-    model = AutoModelForSeq2SeqLM.from_pretrained(model_dir)
-
-    tokenizer = AutoTokenizer.from_pretrained(MODEL_CHECKPOINT)
-    print("#### Tokenizing dataset ####")
-    dataset = dataset["test"]["inflection"]
-    input_model = []
-    labels = []
-
-    for i in range(len(dataset)):
-        input_model.append(dataset[i]["tag"] + ": " + dataset[i]["input"])
-        labels.append(dataset[i]["output"])
-
-    model_inputs = tokenizer(input_model, padding="max_length", max_length=36, return_tensors="pt")
-    input_ids = model_inputs.input_ids
-    attention_mask = model_inputs.attention_mask
-    print("#### Generating outputs ####")
-    outputs = model.generate(input_ids=input_ids, attention_mask=attention_mask, max_length=36)
-
-    decoded_outputs = tokenizer.batch_decode(outputs.tolist(), skip_special_tokens=True)
     
-    print("#### Calculating accuracy and cer score ####")
-
-    labels_filepath = os.path.join(data_f, "labels_test_" + model_name + ".txt")
-    outputs_filepath = os.path.join(data_f, "outputs_test_" + model_name + ".txt")
-
     # saving for later analysis
-    with open(outputs_filepath, "w") as output:
-        output.write(str(decoded_outputs))
+    labels_filepath = os.path.join(data_f, "model_preds","labels_test_" + model_name + ".txt")
+    outputs_filepath = os.path.join(data_f, "model_preds", "outputs_test_" + model_name + ".txt")
 
-    with open(labels_filepath, "w") as output:
-        output.write(str(labels))
+    #############################################################################################
 
-    # my_file = open(labels_filepath, "r")
-    # labels = my_file.read().split(',')
-    # my_file.close()
+    # # uncomment if need to make predictions 
+    # model = AutoModelForSeq2SeqLM.from_pretrained(model_dir)
 
-    # my_file = open(outputs_filepath, "r")
-    # decoded_outputs = my_file.read().split(',')
-    # my_file.close()
+    # tokenizer = AutoTokenizer.from_pretrained(MODEL_CHECKPOINT)
+    # print("#### Tokenizing dataset ####")
+    # dataset = dataset["test"]["inflection"]
+    # input_model = []
+    # labels = []
 
-    idx_end = 100
+    # for i in range(len(dataset)):
+    #     input_model.append(dataset[i]["tag"] + ": " + dataset[i]["input"])
+    #     labels.append(dataset[i]["output"])
 
-    while idx_end != 700:
-        # first get accuracy
-        direct_acc = 0
-        for i in range(idx_end):
-            if decoded_outputs[i] == labels[i]: # not lower cause german nouns are always capital
-                direct_acc += 1
-        print(f"Direct accuracy (%) on test set of size {idx_end}: {((direct_acc/idx_end) * 100)}")
+    # model_inputs = tokenizer(input_model, padding="max_length", max_length=36, return_tensors="pt")
+    # input_ids = model_inputs.input_ids
+    # attention_mask = model_inputs.attention_mask
+    # print("#### Generating outputs ####")
+    # outputs = model.generate(input_ids=input_ids, attention_mask=attention_mask, max_length=36)
 
-        # then get CER
-        metric = evaluate.load("cer")
-        cer_score = metric.compute(predictions=decoded_outputs[0:idx_end], references=labels[0:idx_end])    
-        print(f"CER on test set of size {idx_end}: {cer_score}") # lower is better
-        print()
-        idx_end += 100
+    # decoded_outputs = tokenizer.batch_decode(outputs.tolist(), skip_special_tokens=True)
+    
+
+    # with open(outputs_filepath, "w") as output:
+    #     output.write(str(decoded_outputs))
+
+    # with open(labels_filepath, "w") as output:
+    #     output.write(str(labels))
+
+    #############################################################################################
+
+    # uncomment if predictions are saved already
+    my_file = open(labels_filepath, "r")
+    labels = my_file.read().split(',')
+    my_file.close()
+
+    my_file = open(outputs_filepath, "r")
+    decoded_outputs = my_file.read().split(',')
+    my_file.close()
+
+    #############################################################################################
+    
+
+    print("#### Calculating accuracy and cer score ####")
+    # first get accuracy
+    direct_acc = 0
+    for i in range(len(labels)):
+        if decoded_outputs[i] == labels[i]: # not lower cause german nouns are always capital
+            direct_acc += 1
+    print(f"Direct accuracy (%) on test set: {((direct_acc/len(labels)) * 100)}")
+
+    # then get CER
+    metric = evaluate.load("cer")
+    cer_score = metric.compute(predictions=decoded_outputs, references=labels)    
+    print(f"CER on test set: {cer_score}") # lower is better
+    print()
 
 def get_gender_accuracy(file_path_labels, file_path_outputs, file_path_testset):
     """ Get accuracy based on gender specifics (for whole test set)
