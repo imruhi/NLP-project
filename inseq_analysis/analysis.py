@@ -43,7 +43,7 @@ def do_analysis(model_filepath, input_text):
     out.show(return_html=True)
 
 def get_average_score(model_f, test_f, bCorrect = True):
-    """ TODO: challenge part, get the average attribution scores given a prediction list of
+    """ Challenge part, get the average attribution scores given a prediction list of
     plural nouns 
     :param bCorrect: if True get scores for correct predictions else get scores for incorrect predictions 
     """  
