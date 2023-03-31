@@ -1,4 +1,4 @@
-# NLP-project
+# Natural Language Processing Final Project
 Neural Model(s) of Morphological Inflection
 
 This repository is part of a course project for the course Natural Language Processing of the [University of Groningen](https://www.rug.nl/).
