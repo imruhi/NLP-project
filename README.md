@@ -42,6 +42,6 @@ Additionally, the following options can be specified to further configure the pr
 |Option|Description|Default Value|
 |------|-----------|-------------|
 |`local_load`|Load from local dataset or create a new one from source data|yes|
-|`epochs`|The number of epochs to finetune the model for|3|
-|`name`|The name used for the finetuned model|"byt5finetune_ruhi"|
+|`epochs`|The number of epochs to finetune the model for|5|
+|`name`|The name used for the finetuned model|"byt5finetune_ruhi600"|
 |`correct_preds`|Choose the correct preds while calculating average attribution scores or not|yes|
