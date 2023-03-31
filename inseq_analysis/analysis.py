@@ -84,7 +84,7 @@ def get_average_score(model_f, test_f, bCorrect = True):
         attribution = out.sequence_attributions[0]
         target = ''.join([t.token for t in attribution.target][:-1])    # ignore eos token
 
-        if (target == labels[i]) and bCorrect:
+        if (target == labels[i])  == bCorrect:
             start_idx, end_idx = re.search(pattern1, inputs[i]).span()
             # Aggregate scores to get the values from the heatmaps
             agg = out.sequence_attributions[0].aggregate(aggregator=SequenceAttributionAggregator)
