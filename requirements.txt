@@ -5,3 +5,5 @@ jiwer
 inseq
 evaluate
 tensorflow
+numpy
+pandas
