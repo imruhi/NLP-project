@@ -4,7 +4,7 @@ import torch
 import os 
 import os.path
 
-MODEL_CHECKPOINT = 'google/byt5-small'
+MODEL_CHECKPOINT = 'google/byt5-base'
 
 def load_data(file_path, load_from_local = True):
     """ Load data from .csv or previously saved hf dataset 
