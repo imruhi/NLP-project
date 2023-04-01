@@ -40,7 +40,7 @@ def do_analysis(model_filepath, input_text):
         step_scores=["probability"]
     )
 
-    out.show(return_html=True)
+    out.show()
 
 def get_average_score(model_f, test_f, bCorrect = True):
     """ Challenge part, get the average attribution scores given a prediction list of
