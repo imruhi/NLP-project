@@ -27,7 +27,7 @@ parser.add_argument("--local_load", type=str, default="yes",
 parser.add_argument("--epochs", type=int, default=5,
                     help="The number of epochs the model will be trained")
 
-parser.add_argument("--name", type=str, default="byt5finetune_ruhi",
+parser.add_argument("--name", type=str, default="byt5finetune_ruhi600",
                     help="The name to use for the model")
 
 parser.add_argument("--correct_preds", type=str, default="yes", choices=["yes", "no"],
@@ -72,11 +72,14 @@ if __name__ == "__main__":
         do_contrast_analysis(model_f, input_text, contrast, truth)
     
     elif options.action == "get_average_score":
-    # TODO: challenge part
-        model_f = os.path.join(model_filepath, options.name)
-        preds_f = os.path.join(dataset_filepath, "outputs_test.txt")
-        labels_f = os.path.join(dataset_filepath, "labels_test.txt")
-        test_f = os.path.join(dataset_filepath, "deu_gold.csv")
-        get_average_score(model_f, preds_f, labels_f, test_f, bCorrect = options.correct_preds)
+        # challenge part
+            model_f = os.path.join(model_filepath, options.name)
+            test_f = os.path.join(dataset_filepath, "deu_gold.csv")
+            if options.correct_preds == "yes":
+                bCorrect = True 
+            else:
+                bCorrect = False
+            get_average_score(model_f, test_f, bCorrect = bCorrect)
+            
     else:
         print("no valid action selected!")
