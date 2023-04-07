@@ -252,67 +252,6 @@ def get_gender_accuracy(file_path_labels, file_path_outputs, file_path_testset):
     print(f"Accuracy on MASC nouns: {((masc_acc/len(masc_outputs)) * 100)}")
     print(f"Accuracy on NEUT nouns: {((neut_acc/len(neut_outputs)) * 100)}")
 
-def cer_per_length(file_path_labels, file_path_outputs, file_path_testset):
-    my_file = open(file_path_labels, "r")
-    labels = my_file.read().split(',')
-    my_file.close()
-
-    my_file = open(file_path_outputs, "r")
-    outputs = my_file.read().split(',')
-    my_file.close()
-
-    df = pd.read_csv(file_path_testset, usecols = ['tag','lemma'], low_memory = True)
-    tags = df['tag'].values.tolist()
-    lemma = df['lemma'].values.tolist()
-
-    metric = evaluate.load("cer")
-
-    inputs = []
-    unique_lens = []
-    cer_scores = []
-    acc_scores = []
-    for i in range(len(tags)):
-        input_ = tags[i] + ": " + lemma[i]
-        inputs.append(input_)
-        if len(input_) not in unique_lens:
-            unique_lens.append(len(input_))
-
-    unique_lens.sort()
-
-    for length in unique_lens:
-        indices = [i for i, x in enumerate(inputs) if len(x) == length]
-        preds = [outputs[x] for x in indices]
-        refs = [labels[x] for x in indices]
-        acc = 0
-        cer_score = metric.compute(predictions=preds, references=refs)
-        for i in range(len(refs)):
-            if preds[i] == refs[i]:
-                acc += 1
-        acc = ((acc/len(refs)) * 100)
-        cer_scores.append(round(cer_score,2))
-        acc_scores.append(round(acc, 2))
-        print(f"CER score for input length {length}: {cer_score}")
-        print(f"Direct accuracy for input length {length}: {acc}")
-        print()
-
-    X_axis = np.arange(len(unique_lens))
-      
-    plt.bar(X_axis, cer_scores)      
-    plt.xticks(X_axis, unique_lens)
-    plt.xlabel("Input lengths")
-    plt.ylabel("CER")
-    plt.title("CER scores for varying input lengths")
-    plt.savefig("cer.png", format="png",
-                dpi=300, bbox_inches="tight")
-
-    plt.bar(X_axis, acc_scores)      
-    plt.xticks(X_axis, unique_lens)
-    plt.xlabel("Input lengths")
-    plt.ylabel("Accuracy (%)")
-    plt.title("Accuracy scores for varying input lengths")
-    plt.savefig("accuracy.png", format="png",
-                dpi=300, bbox_inches="tight")
-
 if __name__ == "__main__":
     import pandas as pd
     # test purpose
@@ -323,4 +262,3 @@ if __name__ == "__main__":
     testset = os.path.join(file_path, "german_data", "deu_gold.csv")
     
     get_gender_accuracy(labels, outputs, testset)
-    cer_per_length(labels, outputs, testset)
