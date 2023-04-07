@@ -45,3 +45,7 @@ Additionally, the following options can be specified to further configure the pr
 |`epochs`|The number of epochs to finetune the model for|5|
 |`name`|The name used for the finetuned model|"byt5finetune_ruhi600"|
 |`correct_preds`|Choose the correct preds while calculating average attribution scores or not|yes|
+
+## Downloading the model(s)
+
+The models are available [here](https://drive.google.com/drive/folders/1xemNc8OFy2jbHBhQKHmWs9C3jgmGNZMi?usp=sharing). The model should be downloaded in the filepath NLP-project-main\models\model. 
