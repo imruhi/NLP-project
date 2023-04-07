@@ -1,0 +1,26 @@
+average attribution score for fem for last 3 tokens:
+[[0.02 0.03 0.03]
+ [0.03 0.04 0.04]
+ [0.02 0.02 0.03]
+ [0.02 0.03 0.06]
+ [0.03 0.03 0.04]]
+
+average attribution score for masc for last 3 tokens:
+[[0.02 0.02 0.02]
+ [0.01 0.01 0.01]
+ [0.02 0.01 0.01]
+ [0.03 0.03 0.02]
+ [0.02 0.02 0.01]
+ [0.03 0.02 0.02]]
+
+average attribution score for neut for last 3 tokens:
+[[0.02 0.02 0.02]
+ [0.01 0.01 0.01]
+ [0.02 0.01 0.01]
+ [0.02 0.02 0.01]
+ [0.02 0.02 0.01]
+ [0.03 0.03 0.02]]
+
+overall average for all fem suffix: 0.029999999329447746
+overall average for all masc suffix: 0.019999999552965164
+overall average for all neut suffix: 0.019999999552965164
